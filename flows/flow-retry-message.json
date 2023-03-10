@@ -1,0 +1,89 @@
+{
+  "description": "A New Flow",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "event": "incomingRequest"
+        },
+        {
+          "next": "retry_message",
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "name": "retry_message",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "delay_function",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 510,
+          "y": 170
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Ops! Não entendi o que quis dizer, vamos tentar novamente!"
+      }
+    },
+    {
+      "name": "delay_function",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZS50c018fb4ae63baae7f5e967fd875fa4",
+        "environment_sid": "ZE4517972def51df4e13222e5dd3ab7e49",
+        "offset": {
+          "x": 500,
+          "y": 400
+        },
+        "function_sid": "ZH2d3cd3740657098a1573884e2504325d",
+        "parameters": [
+          {
+            "value": "2000",
+            "key": "milliseconds"
+          }
+        ],
+        "url": "https://delay-9403.twil.io/run_delay"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

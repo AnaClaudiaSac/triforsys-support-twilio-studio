@@ -1,0 +1,2158 @@
+{
+    "description": "A New Flow",
+    "states": [
+      {
+        "name": "Trigger",
+        "type": "trigger",
+        "transitions": [
+          {
+            "next": "presentation",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "incomingCall"
+          },
+          {
+            "event": "incomingConversationMessage"
+          },
+          {
+            "event": "incomingRequest"
+          },
+          {
+            "event": "incomingParent"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -350,
+            "y": -550
+          }
+        }
+      },
+      {
+        "name": "presentation",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_apresentacao",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -690,
+            "y": -280
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Olá! Seja bem vindo a *Triforsys*!\n\nSou a Trisys sua assistente virtual!\n\nMeu compromisso é tornar sua experiência mais completa e simples.\n\nComo posso te ajudar?\n\nEscolha um dos *números* abaixo:\n\n*1* - Chamados\n*2* - Financeiro\n*3* - Comercial\n*4* - Críticas ou Sugestões\n*5* - Trabalhe Conosco",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "separar_apresentacao",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "presentation_retry_1",
+            "event": "noMatch"
+          },
+          {
+            "next": "chamados",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.presentation.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um"
+              }
+            ]
+          },
+          {
+            "next": "financeiro",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.presentation.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois, two"
+              }
+            ]
+          },
+          {
+            "next": "comercial",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "3",
+                "arguments": [
+                  "{{widgets.presentation.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "3, 3., 3-, tres"
+              }
+            ]
+          },
+          {
+            "next": "criticas_sugestoes",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "4",
+                "arguments": [
+                  "{{widgets.presentation.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "4, 4., 4-, quatro"
+              }
+            ]
+          },
+          {
+            "next": "trabalhe_conosco",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "5",
+                "arguments": [
+                  "{{widgets.presentation.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "5, 5-, 5., cinco"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.presentation.inbound.Body}}",
+          "offset": {
+            "x": -660,
+            "y": -30
+          }
+        }
+      },
+      {
+        "name": "chamados",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_chamados",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1080,
+            "y": 240
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, escolha uma das opções:\n\n*1* - Abrir novo chamado\n*2* - Consultar chamado\n*** - Voltar ao início",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "separar_chamados",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "ticket_retry",
+            "event": "noMatch"
+          },
+          {
+            "next": "get_ticket_cnpj",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.chamados.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um"
+              }
+            ]
+          },
+          {
+            "next": "consulta_chamados_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.chamados.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois, two"
+              }
+            ]
+          },
+          {
+            "next": "presentation",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "*",
+                "arguments": [
+                  "{{widgets.chamados.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "*"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.chamados.inbound.Body}}",
+          "offset": {
+            "x": -1160,
+            "y": 550
+          }
+        }
+      },
+      {
+        "name": "consulta_chamados_1",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "consulta_chamado_2",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -750,
+            "y": 1160
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, preciso saber qual *chamado* deseja informação.\n\nnúmero chamado:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "consulta_chamado_2",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "consulta_chamada-3",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -980,
+            "y": 1740
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "O status desse chamado é:\n\nstatus:"
+        }
+      },
+      {
+        "name": "get_ticket_description",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "ask_ticket_images",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -3030,
+            "y": 1650
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "{{ 'Olá *@*.' | replace: '@', flow.variables.name | strip_newlines}} \nVamos te ajudar, descreva a sua dúvida ou dificuldade encontrada.",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "ask_ticket_images",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_novo_chamado_4",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -3140,
+            "y": 1990
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Deseja enviar algum documento, imagem ou PDF ? \nResponda com um dos *números* abaixo:\n\n*1* - Sim\n*2* - Não\n*** - Voltar ao Início",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "financeiro",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_financeiro",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -540,
+            "y": 610
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, escolha um dos *números* abaixo: \n\n*1* - Extrato de horas\n*2* - Faturas",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "separar_financeiro",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "incorreta_financeiro",
+            "event": "noMatch"
+          },
+          {
+            "next": "extrato_financeiro_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.financeiro.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um, extrato de horas, extrato, horas"
+              }
+            ]
+          },
+          {
+            "next": "financeiro_fatura_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.financeiro.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois, fatura, faturas"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.financeiro.inbound.Body}}",
+          "offset": {
+            "x": -380,
+            "y": 900
+          }
+        }
+      },
+      {
+        "name": "get_ticket_cnpj",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "set_cnpj_typed",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1590,
+            "y": 950
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, digite o *CNPJ* sem pontuação, para abrir o chamado:\n\nEx: 11111111111111",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "extrato_financeiro_1",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "extrato_financeiro_2",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -390,
+            "y": 1140
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Qual o número do *CNPJ* que você deseja informação?\n\nNº:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "extrato_financeiro_2",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "extrato_financeiro_3",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -600,
+            "y": 1730
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Este mês você consumiu <horas> do\nseu pacote"
+        }
+      },
+      {
+        "name": "financeiro_fatura_1",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "financeiro_fatura_2",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -40,
+            "y": 1160
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Qual o número do *CNPJ* que você deseja informação?\n\nNº:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "financeiro_fatura_2",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "financeiro_fatura_3",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -40,
+            "y": 1470
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Em nosso sistema consta a fatura no\nvalor de <valor>\ncom o vencimento em <data>"
+        }
+      },
+      {
+        "name": "extrato_financeiro_3",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -440,
+            "y": 1720
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada pelo contato! 😍"
+        }
+      },
+      {
+        "name": "financeiro_fatura_3",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -60,
+            "y": 1740
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada pelo contato! 😍"
+        }
+      },
+      {
+        "name": "consulta_chamada-3",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -920,
+            "y": 1400
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada pelo contato! 😍"
+        }
+      },
+      {
+        "name": "comercial",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_comercial",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -40,
+            "y": 900
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, escolha um dos *números* abaixo: \n \n*1* - Consultar proposta\n*2* - Orçamento",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "separar_comercial",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "separar_incorreto_comercial",
+            "event": "noMatch"
+          },
+          {
+            "next": "comercial_proposta_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.comercial.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um, consultar proposta, proposta"
+              }
+            ]
+          },
+          {
+            "next": "orcamento_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.comercial.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois, orçamento"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.comercial.inbound.Body}}",
+          "offset": {
+            "x": 310,
+            "y": 900
+          }
+        }
+      },
+      {
+        "name": "comercial_proposta-4",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "comercial_proposta_4",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 290,
+            "y": 1750
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "o *número* da sua *prosposta* é:\n\nNº:\n\nQualquer dúvida entre em contato conosco novamente. Será um prazer atendelo(a)!"
+        }
+      },
+      {
+        "name": "comercial_proposta_4",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 270,
+            "y": 2030
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada pelo contato! 😍"
+        }
+      },
+      {
+        "name": "comercial_proposta_1",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "comercial_proposta-2",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 310,
+            "y": 620
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, qual o seu *nome*?\n\nnome:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "comercial_proposta-2",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "comercial_proposta-3",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 330,
+            "y": 1160
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, qual o número do seu *telefone*?\n\nTelefone:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "comercial_proposta-3",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "comercial_proposta-4",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 310,
+            "y": 1470
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, qual o seu *e-mail*?\n\nE-mail:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "orcamento_1",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "orcamento_2",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 720,
+            "y": 1170
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "*Maravilha*, que deseja fazer um *orçamento* com a gente.\n\nMe conte um pouco sobre como eu posso te ajudar.",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "orcamento_2",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "orcamento_3",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 680,
+            "y": 1480
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, qual o seu *nome*?\n\nNome:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "orcamento_3",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "orcamento_4",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 660,
+            "y": 1780
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, qual o seu *telefone*?\n\nTelefone:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "orcamento_4",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "orcamento_5",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 660,
+            "y": 2060
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, qual o seu *-mail*?\n\nE-mail:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "orcamento_5",
+        "type": "send-message",
+        "transitions": [
+          {
+            "next": "orcamento_6",
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 660,
+            "y": 2320
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Que bom!  Em breve um dos nossos \nespecialistas, irão entrar em contato com você."
+        }
+      },
+      {
+        "name": "orcamento_6",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 660,
+            "y": 2590
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada pelo contato! 😍"
+        }
+      },
+      {
+        "name": "criticas_sugestoes",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "criticas_sugestoes_1",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 1020,
+            "y": 600
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Na *Triforsys* estamos sempre buscando dar aos nossos clientes a melhor experiência em suporte e softwares personalizados.\n\nPor isso queremos saber onde podemos evoluir ou no que mais te agradamos.\n  \nEnvie suas criticas ou sugestões:",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "criticas_sugestoes_1",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 1140,
+            "y": 260
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada pelo contato! 😍"
+        }
+      },
+      {
+        "name": "trabalhe_conosco",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "trabalhe_conosco_1",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 660,
+            "y": 610
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Fico muito feliz, que você queira se integrar em nosso time! \n\nEnvie seu *curriculo* para a nossa equipe!\n\n*Sucesso*!",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "trabalhe_conosco_1",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 740,
+            "y": 250
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada pelo contato! 😍"
+        }
+      },
+      {
+        "name": "ausencia_resposta",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -3580,
+            "y": -110
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Imagino que deva estar ocupado(a)!\n\nAssim que quiser conversar novamente com a *Triforsys* para tirar dúvidas, consultar ou conhecer mais do nosso trabalho, mande uma mensagem aqui\" que será um prazer te atender  😍"
+        }
+      },
+      {
+        "name": "separar_incorreta_apresentacao",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "chamados",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.incorreta_apresentacao.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um"
+              }
+            ]
+          },
+          {
+            "next": "financeiro",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.incorreta_apresentacao.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois"
+              }
+            ]
+          },
+          {
+            "next": "comercial",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "3",
+                "arguments": [
+                  "{{widgets.incorreta_apresentacao.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "3, 3., 3-, três"
+              }
+            ]
+          },
+          {
+            "next": "criticas_sugestoes",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "4",
+                "arguments": [
+                  "{{widgets.incorreta_apresentacao.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "4, 4., 4-, quatro"
+              }
+            ]
+          },
+          {
+            "next": "trabalhe_conosco",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "5",
+                "arguments": [
+                  "{{widgets.incorreta_apresentacao.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "5, 5-, 5., cinco"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.incorreta_apresentacao.inbound.Body}}",
+          "offset": {
+            "x": 0,
+            "y": 110
+          }
+        }
+      },
+      {
+        "name": "separar_incorreta_chamados",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "get_ticket_cnpj",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.incorreta_chamados.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um"
+              }
+            ]
+          },
+          {
+            "next": "consulta_chamados_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.incorreta_chamados.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.incorreta_chamados.inbound.Body}}",
+          "offset": {
+            "x": -900,
+            "y": 840
+          }
+        }
+      },
+      {
+        "name": "incorreta_financeiro",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_incorreta_financeiro",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -130,
+            "y": 620
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Olá! Seja bem vindo a *Triforsys*!\n\nSou a Trisys sua assistente virtual!\nMeu compromisso é tornar sua experiência mais completa e simples.\n\nComo posso te ajudar?\n\nEscolha um dos *números* abaixo:\n\n*1* - Chamados\n*2* -  Financeiro\n*3* -  Comercial\n*4* - Críticas ou Sugestões\n*5* - Trabalhe Conosco",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "separar_incorreta_financeiro",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "incorreta_financeiro",
+            "event": "noMatch"
+          },
+          {
+            "next": "extrato_financeiro_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.incorreta_financeiro.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um"
+              }
+            ]
+          },
+          {
+            "next": "financeiro_fatura_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.incorreta_financeiro.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois, two"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.incorreta_financeiro.inbound.Body}}",
+          "offset": {
+            "x": 640,
+            "y": 900
+          }
+        }
+      },
+      {
+        "name": "incorreto_comercial",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_comercial",
+            "event": "incomingMessage"
+          },
+          {
+            "next": "ausencia_resposta",
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 1010,
+            "y": 910
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Escolha um dos *números* abaixo:\n\n Olá! Seja bem vindo a *Triforsys*!\n\nSou a Trisys sua assistente virtual!\nMeu compromisso é tornar sua experiência mais completa e simples.\n\nComo posso te ajudar?\n\nEscolha um dos *números* abaixo:\n\n*1* - Chamados\n*2* -  Financeiro\n*3* -  Comercial\n*4* - Críticas ou Sugestões\n*5* - Trabalhe Conosco",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "separar_incorreto_comercial",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "incorreto_comercial",
+            "event": "noMatch"
+          },
+          {
+            "next": "comercial_proposta_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.incorreto_comercial.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um"
+              }
+            ]
+          },
+          {
+            "next": "orcamento_1",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.incorreto_comercial.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.incorreto_comercial.inbound.Body}}",
+          "offset": {
+            "x": 1340,
+            "y": 900
+          }
+        }
+      },
+      {
+        "name": "separar_novo_chamado_4",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "get_ticket_image",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.ask_ticket_images.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., um, one, sim"
+              }
+            ]
+          },
+          {
+            "next": "function_create_ticket",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.ask_ticket_images.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois, two, não"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.ask_ticket_images.inbound.Body}}",
+          "offset": {
+            "x": -2790,
+            "y": 2670
+          }
+        }
+      },
+      {
+        "name": "get_ticket_image",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "set_document",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -3520,
+            "y": 2270
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Por favor, me envie um *documento*.\n\nEx: Imagem, PDF ou Documento",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "chamado_mensagem_1",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "separar_chamado_mensagem",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2800,
+            "y": 2300
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Deseja enviar mais um documento ?\n \n*1* - Sim\n*2* - Não",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "separar_chamado_mensagem",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "get_ticket_image",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "1",
+                "arguments": [
+                  "{{widgets.chamado_mensagem_1.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "1, 1-, 1., one, um"
+              }
+            ]
+          },
+          {
+            "next": "function_create_ticket",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "2",
+                "arguments": [
+                  "{{widgets.chamado_mensagem_1.inbound.Body}}"
+                ],
+                "type": "matches_any_of",
+                "value": "2, 2-, 2., dois"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.chamado_mensagem_1.inbound.Body}}",
+          "offset": {
+            "x": -2890,
+            "y": 3000
+          }
+        }
+      },
+      {
+        "name": "final_message",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2640,
+            "y": 3670
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "Obrigada, seu chamado foi criado com sucesso, seu código é: *{{widgets.function_create_ticket.parsed.text}}*.\n \nObrigada!"
+        }
+      },
+      {
+        "name": "http_get_cnpj",
+        "type": "make-http-request",
+        "transitions": [
+          {
+            "next": "set_cnpj_return",
+            "event": "success"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1700,
+            "y": 1570
+          },
+          "method": "GET",
+          "content_type": "application/x-www-form-urlencoded;charset=utf-8",
+          "parameters": [
+            {
+              "value": "application/json",
+              "key": "Accept"
+            }
+          ],
+          "url": "https://triforsys-support-api-jgch4.ondigitalocean.app/api/companies?filters[cnpj][$eq]={{flow.variables.cnpj_typed}}"
+        }
+      },
+      {
+        "name": "set_cnpj_return",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "check_cnpj",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{% if widgets.http_get_cnpj.parsed.data == empty %}\nnull\n{% else %}\n{{widgets.http_get_cnpj.parsed.data[0].attributes.cnpj}}\n{% endif %}",
+              "key": "cnpj"
+            },
+            {
+              "value": "{% if widgets.http_get_cnpj.parsed.data == empty %}\nnull\n{% else %}\n{{widgets.http_get_cnpj.parsed.data[0].attributes.fantasy_name}}\n{% endif %}",
+              "key": "fantasy_name"
+            },
+            {
+              "value": "{% if widgets.http_get_cnpj.parsed.data == empty %}\nnull\n{% else %}\n{{widgets.http_get_cnpj.parsed.data[0].id}}\n{% endif %}",
+              "key": "company_id"
+            }
+          ],
+          "offset": {
+            "x": -1590,
+            "y": 1910
+          }
+        }
+      },
+      {
+        "name": "check_cnpj",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "get_ticket_cnpj_retry",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "Vazio",
+                "arguments": [
+                  "{{flow.variables.cnpj}}"
+                ],
+                "type": "equal_to",
+                "value": "null"
+              }
+            ]
+          },
+          {
+            "next": "get_ticket_cpf",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "Não Vazio",
+                "arguments": [
+                  "{{flow.variables.cnpj}}"
+                ],
+                "type": "not_equal_to",
+                "value": "null"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.cnpj}}",
+          "offset": {
+            "x": -1600,
+            "y": 2220
+          }
+        }
+      },
+      {
+        "name": "get_ticket_cnpj_retry",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "set_cnpj_typed_retry",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -1570,
+            "y": 2550
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Ops!... CNPJ não econtrado, digite novamente por favor:\n\nEx: 11111111111111",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "set_cnpj_typed",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "http_get_cnpj",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_ticket_cnpj.inbound.Body}}",
+              "key": "cnpj_typed"
+            }
+          ],
+          "offset": {
+            "x": -1610,
+            "y": 1260
+          }
+        }
+      },
+      {
+        "name": "set_cnpj_typed_retry",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "http_get_cnpj",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_ticket_cnpj_retry.inbound.Body}}",
+              "key": "cnpj_typed"
+            }
+          ],
+          "offset": {
+            "x": -1590,
+            "y": 2840
+          }
+        }
+      },
+      {
+        "name": "append_images_function",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "set_ticket_images",
+            "event": "success"
+          },
+          {
+            "next": "get_ticket_image_retry",
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZS4527e0d475fb15bdff20142a64cc2efa",
+          "environment_sid": "ZE395115a5fd37a09f36a7fb03d7b3c79a",
+          "offset": {
+            "x": -3300,
+            "y": 3000
+          },
+          "function_sid": "ZH0c85853bb1958a9da8d4d8f835039596",
+          "parameters": [
+            {
+              "value": "{{flow.variables.document}}",
+              "key": "image"
+            },
+            {
+              "value": "{{flow.variables.ticket_images}}",
+              "key": "ticket_images"
+            }
+          ],
+          "url": "https://manage-images-7429.twil.io/ticket_image"
+        }
+      },
+      {
+        "name": "set_ticket_images",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "chamado_mensagem_1",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.append_images_function.body}}",
+              "key": "ticket_images"
+            }
+          ],
+          "offset": {
+            "x": -3570,
+            "y": 3390
+          }
+        }
+      },
+      {
+        "name": "get_ticket_cpf",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "set_cpf_typed",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2200,
+            "y": 960
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "{{ 'Você está na empresa *@*.' | replace: '@', flow.variables.fantasy_name |  strip_newlines }}\nAgora digite o seu *CPF* de acordo com exemplo abaixo:\n\nEx: 11111111111",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "set_cpf_typed",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "function_get_cpf",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_ticket_cpf.inbound.Body}}",
+              "key": "cpf_typed"
+            }
+          ],
+          "offset": {
+            "x": -2230,
+            "y": 1280
+          }
+        }
+      },
+      {
+        "name": "set_employee_return",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "check_cpf",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{% if widgets.function_get_cpf.parsed.data == empty %}\nnull\n{% else %}\n{{widgets.function_get_cpf.parsed.data[0].attributes.cpf}}\n{% endif %}",
+              "key": "cpf"
+            },
+            {
+              "value": "{% if widgets. function_get_cpf .parsed.data == empty %}\nnull\n{% else %}\n{{widgets. function_get_cpf .parsed.data[0].attributes.name}}\n{% endif %}",
+              "key": "name"
+            },
+            {
+              "value": "{% if widgets. function_get_cpf .parsed.data == empty %}\nnull\n{% else %}\n{{widgets. function_get_cpf .parsed.data[0].id}}\n{% endif %}",
+              "key": "employee_id"
+            }
+          ],
+          "offset": {
+            "x": -2440,
+            "y": 1930
+          }
+        }
+      },
+      {
+        "name": "check_cpf",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "get_ticket_cpf_retry",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "Vazio",
+                "arguments": [
+                  "{{flow.variables.cpf}}"
+                ],
+                "type": "equal_to",
+                "value": "null"
+              }
+            ]
+          },
+          {
+            "next": "get_ticket_description",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "Não Vazio",
+                "arguments": [
+                  "{{flow.variables.cpf}}"
+                ],
+                "type": "not_equal_to",
+                "value": "null"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{flow.variables.cpf}}",
+          "offset": {
+            "x": -2210,
+            "y": 2230
+          }
+        }
+      },
+      {
+        "name": "get_ticket_cpf_retry",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "set_cpf_typed_retry",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2150,
+            "y": 2570
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Ops!... CPF não econtrado, digite novamente por favor:\n\nEx: 11111111111",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "set_cpf_typed_retry",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "function_get_cpf",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{{widgets.get_ticket_cpf_retry.inbound.Body}}",
+              "key": "cpf_typed"
+            }
+          ],
+          "offset": {
+            "x": -2130,
+            "y": 2860
+          }
+        }
+      },
+      {
+        "name": "function_create_ticket",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "final_message",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZS66c0bc19c8b178febb7abfb4bc8fa8a8",
+          "environment_sid": "ZE4b4541c6f5c1927134dd2670631fc7a9",
+          "offset": {
+            "x": -2650,
+            "y": 3320
+          },
+          "function_sid": "ZHf9c43465533fa274000b926e0b941153",
+          "parameters": [
+            {
+              "value": "{{widgets.get_ticket_description.inbound.Body}}",
+              "key": "description"
+            },
+            {
+              "value": "{{flow.variables.ticket_images}}",
+              "key": "images"
+            },
+            {
+              "value": "{{flow.variables.employee_id}}",
+              "key": "employee_id"
+            }
+          ],
+          "url": "https://create-ticket-9133.twil.io/create-ticket"
+        }
+      },
+      {
+        "name": "fail_get_cpf",
+        "type": "send-message",
+        "transitions": [
+          {
+            "event": "sent"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -2050,
+            "y": 1930
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "to": "{{contact.channel.address}}",
+          "body": "{{widgets.function_get_cpf.parsed.text}}"
+        }
+      },
+      {
+        "name": "function_get_cpf",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "set_employee_return",
+            "event": "success"
+          },
+          {
+            "next": "fail_get_cpf",
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZS144975a558013c96d6049334a1b2af1b",
+          "environment_sid": "ZEefdfac871e12f74228f2ce4c84c2497b",
+          "offset": {
+            "x": -2260,
+            "y": 1610
+          },
+          "function_sid": "ZHf3482ee8dff1b2eebed10f957b6a94b5",
+          "parameters": [
+            {
+              "value": "{{flow.variables.cpf_typed}}",
+              "key": "cpf"
+            },
+            {
+              "value": "{{flow.variables.company_id}}",
+              "key": "company_id"
+            }
+          ],
+          "url": "https://get-cpf-3836.twil.io/get-cpf"
+        }
+      },
+      {
+        "name": "get_ticket_image_retry",
+        "type": "send-and-wait-for-reply",
+        "transitions": [
+          {
+            "next": "set_document_retry",
+            "event": "incomingMessage"
+          },
+          {
+            "event": "timeout"
+          },
+          {
+            "event": "deliveryFailure"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -3180,
+            "y": 3370
+          },
+          "service": "{{trigger.message.InstanceSid}}",
+          "channel": "{{trigger.message.ChannelSid}}",
+          "from": "{{flow.channel.address}}",
+          "body": "Ops! Envie um documento válido, tente novamente por favor.",
+          "timeout": "3600"
+        }
+      },
+      {
+        "name": "set_document",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "append_images_function",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{% if widgets.get_ticket_image.inbound.Body == empty %}\n{{widgets.get_ticket_image.inbound.MediaUrl0}}\n{% else %}\n{{widgets.get_ticket_image.inbound.Body}}\n{% endif %}",
+              "key": "document"
+            }
+          ],
+          "offset": {
+            "x": -3430,
+            "y": 2710
+          }
+        }
+      },
+      {
+        "name": "set_document_retry",
+        "type": "set-variables",
+        "transitions": [
+          {
+            "next": "append_images_function",
+            "event": "next"
+          }
+        ],
+        "properties": {
+          "variables": [
+            {
+              "value": "{% if widgets.get_ticket_image_retry.inbound.Body == empty %}\n{{widgets.get_ticket_image_retry.inbound.MediaUrl0}}\n{% else %}\n{{widgets.get_ticket_image_retry.inbound.Body}}\n{% endif %}",
+              "key": "document"
+            }
+          ],
+          "offset": {
+            "x": -3450,
+            "y": 3740
+          }
+        }
+      },
+      {
+        "name": "presentation_retry_1",
+        "type": "run-subflow",
+        "transitions": [
+          {
+            "next": "presentation",
+            "event": "completed"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "flow_sid": "FW6089153e50ead9a18b35e7196aaf58e8",
+          "flow_revision": "LatestPublished",
+          "offset": {
+            "x": -260,
+            "y": -300
+          }
+        }
+      },
+      {
+        "name": "ticket_retry",
+        "type": "run-subflow",
+        "transitions": [
+          {
+            "next": "chamados",
+            "event": "completed"
+          },
+          {
+            "event": "failed"
+          }
+        ],
+        "properties": {
+          "flow_sid": "FW6089153e50ead9a18b35e7196aaf58e8",
+          "flow_revision": "LatestPublished",
+          "offset": {
+            "x": -1790,
+            "y": 520
+          }
+        }
+      }
+    ],
+    "initial_state": "Trigger",
+    "flags": {
+      "allow_concurrent_calls": true
+    }
+  }
